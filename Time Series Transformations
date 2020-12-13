@@ -1,0 +1,52 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+
+# lambda function that converts a string into datetime
+dateparse = lambda dates: pd.datetime.strptime(dates, '%m-%d-%Y')
+
+# reads the csv into 
+df = pd.read_csv(r"C:\TBLAMEY\UH\FA2020\Covid-19\Reported3.csv", parse_dates=['Date'], date_parser=dateparse)
+
+# sets the date column as the index
+df = df.set_index('Date')
+
+# performs a log transformation of the data
+log_transform = np.log(df)
+
+
+
+# differences the log transformed data
+diff = log_transform.diff()
+
+# Many forecasting techniques assume stationarity (our data is non-stationary) - 1
+plt.plot(df.index, df['Reported'], label="Original");
+
+# Applying a transformation such as a logarithm stabilizes the standard deviation (Reducing Seasonality) - 2
+#plt.plot(df.index, log_transform['Reported'], color='red', label="Log transform");
+
+# Differencing stabilizes the mean (Reducing Trend) - 3
+#plt.plot(df.index, diff['Reported'], label="Post differencing");
+
+plt.title('Time plot aftering applying \n a log transform and differencing', fontsize=20);
+plt.legend(loc='upper left');
+plt.ylabel('Reported', fontsize = 12);
+plt.xlabel('Date', fontsize = 12);
+plt.xticks(rotation='vertical')
+
+
+# imports the necessary module
+from statsmodels.tsa.seasonal import seasonal_decompose
+
+# performs the function seasonal_decompose on the log transformed time series
+decomposition = seasonal_decompose(log_transform, freq=1)
+
+# assigns the trend, seasonal, and resid attributes to the trend, seasonality and residual variables
+# HI Covid Data shows no seasonality - so all trend.
+trend = decomposition.trend
+seasonality = decomposition.seasonal
+residual = decomposition.resid
+
+#print(trend)
+#print(seasonality)
+#print(residual)
